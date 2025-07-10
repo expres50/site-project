@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion de Documents</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Animation personnalisée */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+        
+        /* Style personnalisé pour la barre de défilement */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+        
+        /* Transition pour les modals */
+        .modal {
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans">
+    <!-- Barre de navigation -->
+    <nav class="bg-blue-600 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <i class="fas fa-file-alt text-2xl"></i>
+                <span class="text-xl font-bold">DocManager</span>
+            </div>
+            <div class="hidden md:flex items-center space-x-6">
+                <a href="#" class="hover:text-blue-200 transition">Accueil</a>
+                <a href="#" class="hover:text-blue-200 transition">Documents</a>
+                <a href="#" class="hover:text-blue-200 transition">Statistiques</a>
+                <a href="#" class="hover:text-blue-200 transition">Paramètres</a>
+            </div>
+            <div class="flex items-center space-x-4">
+                <div class="relative">
+                    <i class="fas fa-bell text-xl cursor-pointer hover:text-blue-200"></i>
+                    <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">3</span>
+                </div>
+                <div class="w-10 h-10 rounded-full bg-blue-400 flex items-center justify-center cursor-pointer">
+                    <i class="fas fa-user"></i>
+                </div>
+                <button class="md:hidden" id="mobile-menu-button">
+                    <i class="fas fa-bars text-xl"></i>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Menu mobile -->
+        <div class="md:hidden hidden bg-blue-700 px-4 py-2" id="mobile-menu">
+            <a href="#" class="block py-2 hover:text-blue-200 transition">Accueil</a>
+            <a href="#" class="block py-2 hover:text-blue-200 transition">Documents</a>
+            <a href="#" class="block py-2 hover:text-blue-200 transition">Statistiques</a>
+            <a href="#" class="block py-2 hover:text-blue-200 transition">Paramètres</a>
+        </div>
+    </nav>
+
+    <!-- Contenu principal -->
+    <div class="container mx-auto px-4 py-8">
+        <!-- En-tête -->
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-800">Gestion des Documents</h1>
+                <p class="text-gray-600">Consultez et gérez tous vos documents en un seul endroit</p>
+            </div>
+            <div class="mt-4 md:mt-0 flex space-x-3">
+                <button id="add-document-btn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition">
+                    <i class="fas fa-plus"></i>
+                    <span>Ajouter un document</span>
+                </button>
+                <button class="bg-white hover:bg-gray-100 text-gray-800 border border-gray-300 px-4 py-2 rounded-lg flex items-center space-x-2 transition">
+                    <i class="fas fa-filter"></i>
+                    <span>Filtrer</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Statistiques rapides -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+            <div class="bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <p class="text-gray-500">Documents totaux</p>
+                        <h3 class="text-2xl font-bold">1,248</h3>
+                    </div>
+                    <div class="bg-blue-100 p-3 rounded-full">
+                        <i class="fas fa-file text-blue-600 text-xl"></i>
+                    </div>
+                </div>
+                <p class="text-green-500 text-sm mt-2"><i class="fas fa-arrow-up"></i> 12% depuis hier</p>
+            </div>
+            
+            <div class="bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <p class="text-gray-500">Documents partagés</p>
+                        <h3 class="text-2xl font-bold">428</h3>
+                    </div>
+                    <div class="bg-green-100 p-3 rounded-full">
+                        <i class="fas fa-share-alt text-green-600 text-xl"></i>
+                    </div>
+                </div>
+                <p class="text-green-500 text-sm mt-2"><i class="fas fa-arrow-up"></i> 5% depuis hier</p>
+            </div>
+            
+            <div class="bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <p class="text-gray-500">Documents archivés</p>
+                        <h3 class="text-2xl font-bold">196</h3>
+                    </div>
+                    <div class="bg-yellow-100 p-3 rounded-full">
+                        <i class="fas fa-archive text-yellow-600 text-xl"></i>
+                    </div>
+                </div>
+                <p class="text-red-500 text-sm mt-2"><i class="fas fa-arrow-down"></i> 2% depuis hier</p>
+            </div>
+            
+            <div class="bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <p class="text-gray-500">Espace utilisé</p>
+                        <h3 class="text-2xl font-bold">3.2 GB</h3>
+                    </div>
+                    <div class="bg-purple-100 p-3 rounded-full">
+                        <i class="fas fa-database text-purple-600 text-xl"></i>
+                    </div>
+                </div>
+                <p class="text-green-500 text-sm mt-2"><i class="fas fa-arrow-up"></i> 0.5% depuis hier</p>
+            </div>
+        </div>
+
+        <!-- Tableau des documents -->
+        <div class="bg-white rounded-lg shadow-sm overflow-hidden mb-8">
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nom</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Taille</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date de modification</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Statut</th>
+                            <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200" id="documents-table-body">
+                        <!-- Les documents seront chargés ici via JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Pagination -->
+            <div class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+                <div class="flex-1 flex justify-between sm:hidden">
+                    <a href="#" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">Précédent</a>
+                    <a href="#" class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">Suivant</a>
+                </div>
+                <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                    <div>
+                        <p class="text-sm text-gray-700">
+                            Affichage de <span class="font-medium">1</span> à <span class="font-medium">10</span> sur <span class="font-medium">1248</span> documents
+                        </p>
+                    </div>
+                    <div>
+                        <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                            <a href="#" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                <span class="sr-only">Précédent</span>
+                                <i class="fas fa-chevron-left"></i>
+                            </a>
+                            <a href="#" aria-current="page" class="z-10 bg-blue-50 border-blue-500 text-blue-600 relative inline-flex items-center px-4 py-2 border text-sm font-medium">1</a>
+                            <a href="#" class="bg-white border-gray-300 text-gray-500 hover:bg-gray-50 relative inline-flex items-center px-4 py-2 border text-sm font-medium">2</a>
+                            <a href="#" class="bg-white border-gray-300 text-gray-500 hover:bg-gray-50 relative inline-flex items-center px-4 py-2 border text-sm font-medium">3</a>
+                            <a href="#" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                <span class="sr-only">Suivant</span>
+                                <i class="fas fa-chevron-right"></i>
+                            </a>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal d'ajout de document -->
+    <div id="add-document-modal" class="fixed inset-0 z-50 hidden overflow-y-auto">
+        <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+                <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+            </div>
+            
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            
+            <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <div class="sm:flex sm:items-start">
+                        <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 sm:mx-0 sm:h-10 sm:w-10">
+                            <i class="fas fa-file-upload text-blue-600"></i>
+                        </div>
+                        <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                            <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">
+                                Ajouter un nouveau document
+                            </h3>
+                            <div class="mt-4">
+                                <div class="mb-4">
+                                    <label for="document-name" class="block text-sm font-medium text-gray-700 mb-1">Nom du document</label>
+                                    <input type="text" id="document-name" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                </div>
+                                
+                                <div class="mb-4">
+                                    <label for="document-type" class="block text-sm font-medium text-gray-700 mb-1">Type de document</label>
+                                    <select id="document-type" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                        <option value="pdf">PDF</option>
+                                        <option value="word">Word</option>
+                                        <option value="excel">Excel</option>
+                                        <option value="image">Image</option>
+                                        <option value="autre">Autre</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="mb-4">
+                                    <label for="document-file" class="block text-sm font-medium text-gray-700 mb-1">Fichier</label>
+                                    <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
+                                        <div class="space-y-1 text-center">
+                                            <div class="flex text-sm text-gray-600">
+                                                <label for="file-upload" class="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500">
+                                                    <span>Téléverser un fichier</span>
+                                                    <input id="file-upload" name="file-upload" type="file" class="sr-only">
+                                                </label>
+                                                <p class="pl-1">ou glisser-déposer</p>
+                                            </div>
+                                            <p class="text-xs text-gray-500">
+                                                PDF, DOCX, XLSX, JPG jusqu'à 10MB
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                    <button type="button" id="confirm-add-document" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm">
+                        Ajouter
+                    </button>
+                    <button type="button" id="cancel-add-document" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                        Annuler
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de confirmation de suppression -->
+    <div id="delete-confirm-modal" class="fixed inset-0 z-50 hidden overflow-y-auto">
+        <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+                <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+            </div>
+            
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            
+            <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <div class="sm:flex sm:items-start">
+                        <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
+                            <i class="fas fa-exclamation-triangle text-red-600"></i>
+                        </div>
+                        <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                            <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">
+                                Confirmer la suppression
+                            </h3>
+                            <div class="mt-2">
+                                <p class="text-sm text-gray-500">
+                                    Êtes-vous sûr de vouloir supprimer ce document? Cette action est irréversible.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                    <button type="button" id="confirm-delete" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm">
+                        Supprimer
+                    </button>
+                    <button type="button" id="cancel-delete" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                        Annuler
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-8">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <h3 class="text-xl font-bold mb-4">DocManager</h3>
+                    <p class="text-gray-400">Une solution complète pour gérer tous vos documents en un seul endroit.</p>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-4">Navigation</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-gray-400 hover:text-white transition">Accueil</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition">Documents</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition">Statistiques</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition">Paramètres</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-4">Support</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-gray-400 hover:text-white transition">Centre d'aide</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition">FAQ</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition">Contact</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-4">Légal</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-gray-400 hover:text-white transition">Conditions d'utilisation</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition">Politique de confidentialité</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400">
+                <p>&copy; 2023 DocManager. Tous droits réservés.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Données simulées pour les documents
+        const documents = [
+            { id: 1, name: "Rapport annuel 2023", type: "pdf", size: "2.4 MB", modified: "2023-05-15", status: "actif" },
+            { id: 2, name: "Budget prévisionnel", type: "excel", size: "1.1 MB", modified: "2023-05-10", status: "partagé" },
+            { id: 3, name: "Contrat client", type: "word", size: "0.8 MB", modified: "2023-05-08", status: "archivé" },
+            { id: 4, name: "Photo équipe", type: "image", size: "3.2 MB", modified: "2023-05-05", status: "actif" },
+            { id: 5, name: "Présentation stratégie", type: "pdf", size: "5.7 MB", modified: "2023-05-01", status: "partagé" },
+            { id: 6, name: "Notes de réunion", type: "word", size: "0.5 MB", modified: "2023-04-28", status: "actif" },
+            { id: 7, name: "Liste de contacts", type: "excel", size: "0.3 MB", modified: "2023-04-25", status: "archivé" },
+            { id: 8, name: "Logo entreprise", type: "image", size: "1.2 MB", modified: "2023-04-20", status: "actif" },
+            { id: 9, name: "Politique RH", type: "pdf", size: "1.8 MB", modified: "2023-04-15", status: "partagé" },
+            { id: 10, name: "Procédure qualité", type: "word", size: "2.1 MB", modified: "2023-04-10", status: "actif" }
+        ];
+
+        // Variables pour la gestion des modals
+        let currentDocumentId = null;
+
+        // Fonction pour afficher les documents dans le tableau
+        function displayDocuments() {
+            const tableBody = document.getElementById('documents-table-body');
+            tableBody.innerHTML = '';
+            
+            documents.forEach(doc => {
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-gray-50 fade-in';
+                
+                // Icône selon le type de document
+                let iconClass = 'fas fa-file';
+                let iconColor = 'text-gray-500';
+                
+                switch(doc.type) {
+                    case 'pdf':
+                        iconClass = 'fas fa-file-pdf';
+                        iconColor = 'text-red-500';
+                        break;
+                    case 'word':
+                        iconClass = 'fas fa-file-word';
+                        iconColor = 'text-blue-500';
+                        break;
+                    case 'excel':
+                        iconClass = 'fas fa-file-excel';
+                        iconColor = 'text-green-500';
+                        break;
+                    case 'image':
+                        iconClass = 'fas fa-file-image';
+                        iconColor = 'text-purple-500';
+                        break;
+                }
+                
+                // Badge selon le statut
+                let statusClass = '';
+                let statusText = '';
+                
+                switch(doc.status) {
+                    case 'actif':
+                        statusClass = 'bg-green-100 text-green-800';
+                        statusText = 'Actif';
+                        break;
+                    case 'partagé':
+                        statusClass = 'bg-blue-100 text-blue-800';
+                        statusText = 'Partagé';
+                        break;
+                    case 'archivé':
+                        statusClass = 'bg-yellow-100 text-yellow-800';
+                        statusText = 'Archivé';
+                        break;
+                }
+                
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0 h-10 w-10 flex items-center justify-center">
+                                <i class="${iconClass} ${iconColor} text-xl"></i>
+                            </div>
+                            <div class="ml-4">
+                                <div class="text-sm font-medium text-gray-900">${doc.name}</div>
+                                <div class="text-sm text-gray-500">ID: ${doc.id}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900 capitalize">${doc.type}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">${doc.size}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">${doc.modified}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusClass}">
+                            ${statusText}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <button class="text-blue-600 hover:text-blue-900 mr-3 view-document" data-id="${doc.id}">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="text-yellow-600 hover:text-yellow-900 mr-3 edit-document" data-id="${doc.id}">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="text-red-600 hover:text-red-900 delete-document" data-id="${doc.id}">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                
+                tableBody.appendChild(row);
+            });
+            
+            // Ajouter les écouteurs d'événements pour les boutons
+            document.querySelectorAll('.view-document').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const docId = e.currentTarget.getAttribute('data-id');
+                    viewDocument(docId);
+                });
+            });
+            
+            document.querySelectorAll('.edit-document').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const docId = e.currentTarget.getAttribute('data-id');
+                    editDocument(docId);
+                });
+            });
+            
+            document.querySelectorAll('.delete-document').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const docId = e.currentTarget.getAttribute('data-id');
+                    showDeleteConfirmModal(docId);
+                });
+            });
+        }
+        
+        // Fonction pour afficher un document
+        function viewDocument(docId) {
+            const doc = documents.find(d => d.id == docId);
+            if (doc) {
+                alert(`Visualisation du document: ${doc.name}\nID: ${doc.id}\nType: ${doc.type}\nTaille: ${doc.size}`);
+            }
+        }
+        
+        // Fonction pour éditer un document
+        function editDocument(docId) {
+            const doc = documents.find(d => d.id == docId);
+            if (doc) {
+                alert(`Édition du document: ${doc.name}\nCette fonctionnalité sera implémentée prochainement.`);
+            }
+        }
+        
+        // Fonction pour supprimer un document
+        function deleteDocument(docId) {
+            const index = documents.findIndex(d => d.id == docId);
+            if (index !== -1) {
+                documents.splice(index, 1);
+                displayDocuments();
+                alert('Document supprimé avec succès.');
+            }
+        }
+        
+        // Fonctions pour gérer les modals
+        function showAddDocumentModal() {
+            document.getElementById('add-document-modal').classList.remove('hidden');
+        }
+        
+        function hideAddDocumentModal() {
+            document.getElementById('add-document-modal').classList.add('hidden');
+        }
+        
+        function showDeleteConfirmModal(docId) {
+            currentDocumentId = docId;
+            document.getElementById('delete-confirm-modal').classList.remove('hidden');
+        }
+        
+        function hideDeleteConfirmModal() {
+            document.getElementById('delete-confirm-modal').classList.add('hidden');
+        }
+        
+        // Initialisation
+        document.addEventListener('DOMContentLoaded', () => {
+            // Afficher les documents
+            displayDocuments();
+            
+            // Gestion du menu mobile
+            document.getElementById('mobile-menu-button').addEventListener('click', () => {
+                const menu = document.getElementById('mobile-menu');
+                menu.classList.toggle('hidden');
+            });
+            
+            // Gestion du modal d'ajout de document
+            document.getElementById('add-document-btn').addEventListener('click', showAddDocumentModal);
+            document.getElementById('cancel-add-document').addEventListener('click', hideAddDocumentModal);
+            document.getElementById('confirm-add-document').addEventListener('click', () => {
+                const name = document.getElementById('document-name').value;
+                const type = document.getElementById('document-type').value;
+                
+                if (name) {
+                    // Simuler l'ajout d'un nouveau document
+                    const newId = documents.length > 0 ? Math.max(...documents.map(d => d.id)) + 1 : 1;
+                    const newDoc = {
+                        id: newId,
+                        name: name,
+                        type: type,
+                        size: "0 MB",
+                        modified: new Date().toISOString().split('T')[0],
+                        status: "actif"
+                    };
+                    
+                    documents.unshift(newDoc);
+                    displayDocuments();
+                    hideAddDocumentModal();
+                    
+                    // Réinitialiser le formulaire
+                    document.getElementById('document-name').value = '';
+                    document.getElementById('document-type').value = 'pdf';
+                } else {
+                    alert('Veuillez entrer un nom pour le document.');
+                }
+            });
+            
+            // Gestion du modal de confirmation de suppression
+            document.getElementById('cancel-delete').addEventListener('click', hideDeleteConfirmModal);
+            document.getElementById('confirm-delete').addEventListener('click', () => {
+                if (currentDocumentId) {
+                    deleteDocument(currentDocumentId);
+                    hideDeleteConfirmModal();
+                }
+            });
+            
+            // Fermer les modals en cliquant à l'extérieur
+            const modals = document.querySelectorAll('[id$="-modal"]');
+            modals.forEach(modal => {
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) {
+                        modal.classList.add('hidden');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
